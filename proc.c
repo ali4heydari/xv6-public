@@ -6,7 +6,8 @@
 #include "x86.h"
 #include "proc.h"
 #include "spinlock.h"
-
+#include "syscall.h"
+#include "date.h"
 struct {
   struct spinlock lock;
   struct proc proc[NPROC];
@@ -537,10 +538,128 @@ procdump(void)
   }
 }
 
+
+char* get_syscall_name(int id)
+{
+  switch (id) {
+      case SYS_fork:
+        return ("fork");
+        break;
+      case SYS_exit:
+        return("exit");
+        break;
+      case SYS_wait:
+        return("wait");
+        break;
+      case SYS_pipe:
+        return("pipe");
+        break;
+      case SYS_read:
+        return("read");
+        break;
+      case SYS_kill:
+        return("kill");
+        break;
+      case SYS_exec:
+        return("exec");
+        break;
+      case SYS_fstat:
+        return("fstat");
+        break;
+      case SYS_chdir:
+        return("chdir");
+        break;
+      case SYS_dup:
+        return("dup");
+        break;
+      case SYS_getpid:
+        return("getpid");
+        break;
+      case SYS_sbrk:
+        return("sbrk");
+        break;
+      case SYS_sleep:
+        return("sleep");
+        break;
+      case SYS_uptime:
+        return("uptime");
+        break;
+      case SYS_open:
+        return("open");
+        break;
+      case SYS_write:
+        return("write");
+        break;
+      case SYS_mknod:
+        return("mknod");
+        break;
+      case SYS_unlink:
+        return("unlink");
+        break;
+      case SYS_link:
+        return("link");
+        break;
+      case SYS_mkdir:
+        return("mkdir");
+        break;
+      case SYS_close:
+        return("close");
+        break;
+      case SYS_invoked_syscalls:
+        return("invoked_syscalls");
+        break;
+      default:
+        panic("should never get here\n");
+    }
+} 
+
+
 int
 invoked_syscalls(int pid)
 {
+    struct proc *p;
+    struct system_call *c;
+    int i;
+    struct system_call_histrory *d;
+    char* name;
+    
     cprintf("invoked_syscalls called with %d \n", pid);
-    return 0;
+    
+    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+    {
+      if(p->state == UNUSED)
+        continue;
+      if(p->pid == pid)
+        break; // faund;
+    }
+    if (p == &ptable.proc[NPROC])
+    {
+      cprintf("not such proccess");
+      return 22;
+    }
+
+    for (c=p->syscalls, i=1; c < &p->syscalls[SYSCALLMAX]; c++, i++)
+    {
+      if ( c->count <= 0)
+      {
+        continue;
+      }
+      cprintf("ID: %d   ", i);
+      cprintf("name: ");
+      name = get_syscall_name(i);
+      cprintf("%s", name);
+      cprintf("   count: %d", c->count);
+      cprintf("\n");
+      cprintf("--------------history------------------");
+      cprintf("---args----\n");
+      for (d=c->history; d<&c->history[HISTORYMAX] && d<&c->history[c->count]; d++)
+      {
+        cprintf("  ");
+         cprintf("%d-%d-%d %d:%d:%d\n",
+         d->date->year, d->date->month, d->date->day, d->date->hour, d->date->minute, d->date->second);
+      }
+    }
+    return 22;  
     // TODO implement printing process that system called
 }
+
