@@ -12,5 +12,5 @@
 #define NBUF         (MAXOPBLOCKS*3)  // size of disk block cache
 #define FSSIZE       1000  // size of file system in blocks
 #define HISTORYMAX       10  // size of history
-#define SYSCALLMAX       23  // max number of syscalls in system
+#define SYSCALLMAX       22  // max number of syscalls in system
 
